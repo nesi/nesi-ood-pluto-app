@@ -1,0 +1,7 @@
+---
+name: Pluto.ji
+category: Interactive Apps
+subcategory: Servers
+role: batch_connect
+description: |
+  This app will launch Pluto.ji on one or more nodes.

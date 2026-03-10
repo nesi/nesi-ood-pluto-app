@@ -18,16 +18,16 @@
 # the Dashboard form
 attributes:
   # Add reset workspace option
-  reset_workspace:
-    widget: "check_box"
-    label: "⚠️ Reset Pluto.ji workspace before starting"
-    help: |
-      <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px; padding: 10px; margin-top: 5px;">
-      <strong>Important:</strong> Check this box to clear workspace files that may cause 503 errors with large files.
-      This will delete ~/.julia/* before starting your session.
-      </div>
-    value: false
-    cacheable: false
+  #reset_workspace:
+  #  widget: "check_box"
+  #  label: "⚠️ Reset Pluto.ji workspace before starting"
+  #  help: |
+  #    <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px; padding: 10px; margin-top: 5px;">
+  #    <strong>Important:</strong> Check this box to clear workspace files that may cause 503 errors with large files.
+  #    This will delete ~/.julia/* before starting your session.
+  #    </div>
+  #  value: false
+  #  cacheable: false
 
   # select the cluster
   cluster:
@@ -51,8 +51,7 @@ attributes:
     widget: select
     label: "Pluto.ji module"
     options:
-      - [ "Julia 1.11.3", "Julia/1.11.3-GCC-12.3.0-VTune" ]
-      - [ "Julia 1.9.4", "Julia/1.9.4-GCC-11.3.0-VTune" ]
+      - [ "Julia 1.11.3", "Pluto/0.20.23-Julia-1.11.3-GCC-12.3.0-VTune" ]
     cacheable: false  # default to latest (first in list)
 
   # not used

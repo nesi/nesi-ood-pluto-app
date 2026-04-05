@@ -1,0 +1,91 @@
+#!/bin/bash
+
+# Benchmark info
+echo "TIMING - Starting main script at: $(date)"
+
+export SESSION_DIR="${PWD}"
+
+# Set working directory to home directory
+cd "${HOME}"
+
+# TODO: NeSI/zen3 was not loaded, look into it
+echo "list modules:"
+ml
+echo "load NeSI/zen3"
+ml NeSI/zen3
+echo "list modules:"
+ml
+
+#
+# Start Pluto.ji Server
+#
+
+# Purge the module environment to avoid conflicts
+module purge
+
+# Load the require modules
+#module load code-server/4.100.2
+#module load JupyterLab/2025.5.0-foss-2023a-4.4.2
+#module load cURL/8.3.0-GCCcore-12.3.0
+module load <%= context.pluto_module %>
+
+## Fix terminal colors for ls command with a wrapper script for system ls
+mkdir -p ~/ondemand/ood_bin
+cat > ~/ondemand/ood_bin/ls <<'EOF'
+#!/bin/bash
+/usr/bin/ls --color=auto "$@"
+EOF
+
+chmod +x ~/ondemand/ood_bin/ls
+export PATH="$HOME/ondemand/ood_bin:$PATH"
+    
+# temporary workaround: custom kernels created on mahuika with our tool include "module load slurm"
+# but there is currently no slurm module on the new platform; this should be removed later when
+# there is a slurm module or we have a better solution
+export MODULEPATH=${MODULEPATH}:${SESSION_DIR}/modules
+
+# unload the OpenSSL module as it does not work properly (has a broken symbolic link)
+# however the OpenSSL installed in the docker image works fine
+# NOTE: may need to check this whenever the docker image is updated
+# TODO: check if needed with newly built pluto modules; not sure if needed in hpc context
+ml -OpenSSL
+
+# List loaded modules
+module list
+
+# force disable the announcements extension
+echo "Disabling announcements extension..."
+#jupyter labextension disable --level=user "@jupyterlab/apputils-extension:announcements"
+
+# Benchmark info
+echo "TIMING - Starting pluto at: $(date)"
+
+# set PLUTO_PATH to include shared custom kernels created by nesi-add-kernel
+export PLUTO_PATH=/nesi/project/${PLUTO_JOB_ACCOUNT}/.pluto/share/pluto:${PLUTO_PATH}
+echo "Extending PLUTO_PATH to include shared kernels from \"/nesi/project/${PLUTO_JOB_ACCOUNT}\""
+
+# Launch the Pluto Notebook Server
+set -x
+
+# 1. Assign OOD variables (these are provided by the framework)
+# NOTE: OOD variables are typically lowercase in the ERB template
+export HOST=${host}
+export pluto_port=${PLUTO_PORT}
+export password="$PASSWORD"
+
+# Diagnostic commands: Check versions of installed tools.
+julia --version
+
+# Ensure Pluto.jl is installed in the Julia environment.
+julia -e 'using Pkg; Pkg.add("Pluto")'
+
+# Debugging/Verification lines (Print the assigned environment variables).
+julia -e 'println(ENV["password"])'
+
+# This prints the computed base_url component, likely for debugging the URL structure.
+julia -e 'println("/node/$(ENV["host"])/$(ENV["PORT_CFG"])/")'
+
+# Run Command Inside Container: Launches the Pluto.jl server.
+julia -e 'using Pluto; Pluto.run( Pluto.ServerSession( secret=ENV["password"], options=Pluto.Configuration.from_flat_kwargs( host="0.0.0.0", port=parse(Int, ENV["pluto_port"]), base_url="/node/$(ENV["host"])/$(ENV["PORT_CFG"])/" ) ) ) ' 
+
+

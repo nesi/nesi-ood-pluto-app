@@ -1,0 +1,64 @@
+# This script (`before.sh.erb`) is sourced directly into the main Bash script
+# that is run when the batch job starts up. It is called before the `script.sh`
+# is forked off into a separate process.
+
+<%- if context.cluster == "my-k8s-cluster" -%>
+exec &> >(tee -a "session.log")
+
+# setup host and port
+source /bin/find_host_port
+export host="$HOST_CFG"
+export port="$PORT_CFG"
+export PLUTO_PORT=8080
+
+# fix to resolve DNS lookup in flexi
+#export hostname=$(dig +short -x $HOST_CFG)
+#export hostname=$(kubectl get pods $(hostname) -o jsonpath="{.spec.nodeName}").cloud.nesi.nz
+
+# setup password
+source /bin/save_passwd_as_secret
+export password="$PASSWORD"
+source /bin/create_salt_and_sha1
+
+<%- else -%>
+# Find available port to run server on
+port=$(find_port ${host})
+PLUTO_PORT="${port}"
+HOST_CFG="${host}"
+PORT_CFG="${port}"
+
+# Generate SHA1 encrypted password (requires OpenSSL installed)
+SALT="$(create_passwd 16)"
+password="$(create_passwd 16)"
+PASSWORD_SHA1="$(echo -n "${password}${SALT}" | openssl dgst -sha1 | awk '{print $NF}')"
+
+# this is set for k8s in submit.yml, required for nesi-add-kernel
+export PLUTO_JOB_ACCOUNT="<%= context.account %>"
+
+<%- end -%>
+
+# these are set by pam on normal ssh login
+export LMOD_CONFIG_DIR=/opt/nesi/etc/lmod
+export MODULEPATH_ROOT=/opt/nesi/lmod
+export MODULEPATH=/opt/nesi/lmod/generic
+export BASH_ENV=/usr/share/lmod/lmod/init/bash
+
+# write config file for Pluto
+export CONFIG_FILE=${PWD}/ondemand_config.py
+cat << EOF > "${CONFIG_FILE}"
+c.FileContentsManager.delete_to_trash = False
+c.LabApp.check_for_updates_class = 'pluto.NeverCheckForUpdate'
+c.LabApp.extension_manager = 'pypi'
+c.LabServerApp.copy_absolute_path = True
+c.PluginManager.level = 'user'
+c.ServerApp.allow_origin = '*'
+c.ServerApp.base_url = "/node/${host}/${PORT_CFG}/"
+c.ServerApp.disable_check_xsrf = True
+c.ServerApp.ip = '0.0.0.0'
+c.ServerApp.open_browser = False
+c.ServerApp.password = u"sha1:${SALT}:${PASSWORD_SHA1}"
+c.ServerApp.port = ${PLUTO_PORT}
+c.ServerApp.port_retries = 0
+c.ServerApp.root_dir = "${HOME}"
+c.ServerApp.terminado_settings = {'shell_command': ['/bin/bash', '--login', '-i']}
+EOF

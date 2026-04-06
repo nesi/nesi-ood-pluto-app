@@ -30,7 +30,7 @@ export PORT_CFG="${port}"
 # Generate SHA1 encrypted password (requires OpenSSL installed)
 export SALT="$(create_passwd 16)"
 password="$(create_passwd 16)"
-export PASSWORD_SHA1="$(echo -n "${password}${SALT}" | openssl dgst -sha1 | awk '{print $NF}')"
+PASSWORD="$(echo -n "${password}${SALT}" | openssl dgst -sha1 | awk '{print $NF}')"
 
 # this is set for k8s in submit.yml, required for nesi-add-kernel
 export PLUTO_JOB_ACCOUNT="<%= context.account %>"

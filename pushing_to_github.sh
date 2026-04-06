@@ -3,7 +3,7 @@
 #git init
 # upload to github
 git add .
-git commit -m 'update version of the NeSI OOD Pluto App'
+git commit -m 'Fix to getting Pluto to work on Slurm on Mahuika OnDemand'
 # For commiting to github for the first time
 git branch -M main
 git remote add origin git@github.com:nesi/nesi-ood-pluto-app.git

@@ -31,6 +31,7 @@ export PORT_CFG="${port}"
 SALT="$(create_passwd 16)"
 password="$(create_passwd 16)"
 PASSWORD_SHA1="$(echo -n "${password}${SALT}" | openssl dgst -sha1 | awk '{print $NF}')"
+#PASSWORD=${PASSWORD_SHA1}
 export password="$PASSWORD_SHA1"
 
 # this is set for k8s in submit.yml, required for nesi-add-kernel

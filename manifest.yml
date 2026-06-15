@@ -1,6 +1,6 @@
 ---
-name: Pluto.ji
+name: Pluto.jl
 category: Interactive Development
 role: batch_connect
 description: |
-  This app will launch Pluto.ji on one or more nodes.
+  This app will launch Pluto.jl on one or more nodes.

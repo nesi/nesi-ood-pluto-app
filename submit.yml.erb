@@ -8,9 +8,9 @@
      if Dir.exist?(workspace_path)
        begin
          Dir.glob(File.join(workspace_path, '*')).each { |f| FileUtils.rm_rf(f) }
-         Rails.logger.info "Pluto.ji workspace reset for user: #{user.name}"
+         Rails.logger.info "Pluto.jl workspace reset for user: #{user.name}"
        rescue => e
-         Rails.logger.error "Failed to reset Pluto.ji workspace for user #{user.name}: #{e.message}"
+         Rails.logger.error "Failed to reset Pluto.jl workspace for user #{user.name}: #{e.message}"
        end
      end
    end
